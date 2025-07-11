@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+    id "io.qameta.allure" version "2.8.1"
+}
+
+group 'com.project'
+version '1.0-SNAPSHOT'
+description = "Base Test Automation Framework"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+ext {
+    allureVersion = "2.13.0"
+    selenium_version = '3.141.59'
+}
+
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.10.1'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.1'
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: selenium_version
+    compile group: 'io.qameta.allure', name: 'allure-testng', version: allureVersion
+    compile group: 'io.qameta.allure', name: 'allure-rest-assured', version: allureVersion
+    compile("io.github.bonigarcia:webdrivermanager:3.7.1")
+    compile group: 'io.rest-assured', name: 'rest-assured', version: '4.1.2'
+    compile group: 'log4j', name: 'log4j', version: '1.2.17'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.13.0'
+    compile group: 'org.testng', name: 'testng', version: '7.0.0'
+    compile group: 'org.assertj', name: 'assertj-core', version: '3.14.0'
+}
+
+wrapper {
+    gradleVersion = '6.0.1'
+}
+
+allure {
+    aspectjweaver = true
+    autoconfigure = true
+    version = allureVersion
+    useTestNG {
+        version = allureVersion
+    }
+    downloadLink = "http://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/${allureVersion}/allure-commandline-${allureVersion}.zip"
+}
+
+test {
+    systemProperty "browser", findProperty("browser")
+    // listen to events in the test execution lifecycle
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+
+    // enable TestNG support (default is JUnit)
+    useTestNG() {
+//        dependsOn cleanTest
+        if (project.hasProperty('ui')) {
+            suites 'suites/googleSearch.xml'
+        }
+    }
+    finalizedBy 'allureReport'
+}
